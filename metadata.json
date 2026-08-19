@@ -1,0 +1,6 @@
+{
+  "name": "OMAS ALU-VISION AI",
+  "description": "Transform uncompleted blockwork walls into finished buildings with custom 3D aluminum windows, smart opening detection, real-time paint & frame customization, animated 3D demonstration, and fabrication schedule export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
