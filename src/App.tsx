@@ -32,6 +32,7 @@ import {
   UploadCloud,
   Layers,
   Sparkles,
+  Bookmark,
 } from "lucide-react";
 
 export default function App() {
@@ -51,6 +52,11 @@ export default function App() {
   const [selectedPaintColor, setSelectedPaintColor] = useState<PaintColorSpec>(DEFAULT_PAINT_COLOR);
   const [selectedFrameColor, setSelectedFrameColor] = useState<FrameColorSpec>(DEFAULT_FRAME_COLOR);
   const [selectedWindowId, setSelectedWindowId] = useState<string | null>(null);
+
+  // Camera Action Triggers
+  const [zoomInCount, setZoomInCount] = useState(0);
+  const [zoomOutCount, setZoomOutCount] = useState(0);
+  const [resetCamCount, setResetCamCount] = useState(0);
 
   // Demonstration State (Phase 8)
   const [demoState, setDemoState] = useState<DemonstrationState>({
@@ -382,22 +388,22 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans antialiased selection:bg-indigo-600 selection:text-white">
       {/* Sleek Interface Header */}
-      <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shadow-xs shrink-0 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-indigo-200 shadow-lg shrink-0">
-            <Building2 className="w-5 h-5 text-white" />
+      <header className="h-16 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between shadow-xs shrink-0 sticky top-0 z-40">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-indigo-200 shadow-md shrink-0">
+            <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <h1 className="font-bold text-base sm:text-lg leading-none text-slate-900 tracking-tight">
-              OMAS ALU-VISION AI
+          <div className="min-w-0">
+            <h1 className="font-bold text-sm sm:text-base leading-tight text-slate-900 tracking-tight whitespace-nowrap truncate">
+              OMAS ALU-VISION
             </h1>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mt-1 hidden sm:block">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold hidden sm:block">
               Architectural Visualization Suite
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* PWA In-App Install Trigger */}
           <PWAInstallButton />
 
@@ -407,11 +413,11 @@ export default function App() {
               <button
                 onClick={() => setPhase("upload")}
                 id="btn-back-to-upload"
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-tight transition-colors border border-slate-200 shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-tight transition-colors border border-slate-200 shadow-xs cursor-pointer shrink-0"
                 title="Return to photo upload & wall replacement"
               >
-                <ArrowLeft className="w-4 h-4 text-slate-600" />
-                <span>Back to Upload</span>
+                <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden sm:inline">Upload</span>
               </button>
 
               {/* Individual Mode vs Global Apply Capsule */}
@@ -442,7 +448,7 @@ export default function App() {
               <button
                 onClick={() => setIsScheduleDrawerOpen(true)}
                 id="btn-open-window-schedule"
-                className="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-tight hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-tight hover:bg-slate-50 transition-colors shadow-xs cursor-pointer shrink-0"
               >
                 <Table className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Schedule</span>
@@ -452,9 +458,11 @@ export default function App() {
               <button
                 onClick={() => setIsSaveModalOpen(true)}
                 id="btn-header-save-project"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 py-2 rounded-lg font-bold text-xs uppercase tracking-tight shadow-md shadow-indigo-100 transition-all cursor-pointer"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold text-xs uppercase tracking-tight shadow-md shadow-indigo-100 transition-all cursor-pointer shrink-0 flex items-center gap-1"
               >
-                Save Project
+                <Bookmark className="w-3.5 h-3.5 hidden sm:inline" />
+                <span>Save</span>
+                <span className="hidden sm:inline">&nbsp;Project</span>
               </button>
             </>
           )}
@@ -462,7 +470,7 @@ export default function App() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 overflow-x-hidden">
         {/* Phase 1: Photo Upload Screen */}
         {phase === "upload" && (
           <PhotoUploadScreen
@@ -486,24 +494,22 @@ export default function App() {
         {phase === "viewer" && (
           <div className="space-y-6">
             {/* Top Navigation Bar: Breadcrumb + Back Action */}
-            <div className="flex items-center justify-between bg-white rounded-xl px-4 py-2.5 border border-slate-200 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white rounded-xl p-3 sm:px-4 sm:py-2.5 border border-slate-200 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 min-w-0">
                 <button
                   onClick={() => setPhase("upload")}
-                  className="hover:text-indigo-600 flex items-center gap-1 cursor-pointer"
+                  className="hover:text-indigo-600 flex items-center gap-1 cursor-pointer shrink-0 text-slate-500 hover:text-slate-800"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>1. Photo Upload</span>
+                  <span>Photos</span>
                 </button>
-                <span className="text-slate-300">&bull;</span>
-                <span className="text-indigo-600 font-bold">2. 3D Architectural Visualizer</span>
+                <span className="text-slate-300">&rsaquo;</span>
+                <span className="text-indigo-600 font-bold truncate">3D Architectural Visualizer</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium text-slate-500">
-                  Current Style:
-                </span>
-                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 uppercase">
+              <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Style:</span>
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100 uppercase tracking-tight">
                   {activeGlobalType} Windows
                 </span>
               </div>
@@ -521,23 +527,23 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* 3D Canvas Stage Container */}
               <div className={`${selectedWindow ? "lg:col-span-8" : "lg:col-span-12"} space-y-4`}>
-                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-sm relative overflow-hidden">
                   {/* Stage Top Bar */}
                   <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-                      <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse shrink-0" />
+                      <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider truncate">
                         {walls[activeWallKey]?.label} &bull; {activeWallKey === "front" ? "0° Facade" : activeWallKey === "right" ? "90° Elevation" : activeWallKey === "back" ? "180° Facade" : "270° Elevation"}
                       </h2>
                     </div>
 
-                    <div className="text-[11px] text-slate-400 font-mono hidden sm:block">
+                    <div className="text-[11px] text-slate-400 font-mono hidden sm:block shrink-0">
                       Interactive 360° Orbit &bull; Click Window to Customize
                     </div>
                   </div>
 
                   {/* 3D Stage with Three.js */}
-                  <div className="h-[460px] sm:h-[520px] w-full relative rounded-lg overflow-hidden bg-slate-100">
+                  <div className="w-full relative rounded-lg overflow-hidden bg-slate-100">
                     <ThreeBuildingViewer
                       activeWallKey={activeWallKey}
                       onSelectWall={(w) => setActiveWallKey(w)}
@@ -549,20 +555,27 @@ export default function App() {
                       demoOpenAmount={demoState.openAmount}
                       demoActiveWall={demoState.isPlaying ? demoState.activeWallKey : undefined}
                       isDemonstrationPlaying={demoState.isPlaying}
+                      zoomInTrigger={zoomInCount}
+                      zoomOutTrigger={zoomOutCount}
+                      resetTrigger={resetCamCount}
                     />
-
-                    {/* Floating Elevation Control Pill Bar matching Sleek Interface spec */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-                      <ViewControls
-                        activeWallKey={activeWallKey}
-                        onSelectWall={(w) => {
-                          setActiveWallKey(w);
-                          setSelectedWindowId(null);
-                        }}
-                        disabled={demoState.isPlaying}
-                      />
-                    </div>
                   </div>
+                </div>
+
+                {/* Separate Dedicated Elevation Controls Section */}
+                <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200 shadow-xs">
+                  <ViewControls
+                    activeWallKey={activeWallKey}
+                    onSelectWall={(w) => {
+                      setActiveWallKey(w);
+                      setSelectedWindowId(null);
+                    }}
+                    disabled={demoState.isPlaying}
+                    onResetView={() => setResetCamCount((c) => c + 1)}
+                    onZoomIn={() => setZoomInCount((c) => c + 1)}
+                    onZoomOut={() => setZoomOutCount((c) => c + 1)}
+                    openingsCount={activeWallWindows.length}
+                  />
                 </div>
               </div>
 

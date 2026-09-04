@@ -28,11 +28,11 @@ export const PWAInstallButton: React.FC = () => {
         onClick={handleInstallClick}
         id="btn-pwa-install"
         title="Install OMAS ALU-VISION AI for offline use on PC, Phone & Tablet"
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-tight shadow-sm shadow-emerald-200 transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-tight shadow-xs shadow-emerald-200 transition-all cursor-pointer shrink-0"
       >
         <Download className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">Install App</span>
-        <span className="sm:hidden">Install</span>
+        <span className="hidden md:inline">Install App</span>
+        <span className="hidden xs:inline md:hidden">Install</span>
       </button>
 
       {/* Guide Dialog for iOS Safari & Manual Installation */}

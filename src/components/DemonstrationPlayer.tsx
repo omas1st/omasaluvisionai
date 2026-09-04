@@ -340,13 +340,13 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
   return (
     <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
       {/* Title & Live Status HUD */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
+      <div className="space-y-1 min-w-0 w-full sm:w-auto">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             3D Demonstration
           </span>
 
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase tracking-tight">
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase tracking-tight truncate max-w-[200px]">
             Target: {currentOption.label}
           </span>
 
@@ -357,12 +357,12 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
           )}
         </div>
 
-        <div className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+        <div className="text-xs font-semibold text-slate-700 flex items-center gap-2 min-w-0">
           <Compass className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
           <span className="truncate">
             {isPlaying
               ? phaseLabel
-              : `Select a view below to demonstrate window opening & closing physics.`}
+              : `Select an elevation to demonstrate window physics.`}
           </span>
         </div>
       </div>
@@ -426,7 +426,7 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
 
             {/* Dropdown Menu Popover with All View Options */}
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-2.5rem)] bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Select Demonstration Target

@@ -13,6 +13,9 @@ interface ThreeBuildingViewerProps {
   demoOpenAmount: number; // 0 to 1
   demoActiveWall?: WallKey;
   isDemonstrationPlaying?: boolean;
+  zoomInTrigger?: number;
+  zoomOutTrigger?: number;
+  resetTrigger?: number;
 }
 
 export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
@@ -26,10 +29,14 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
   demoOpenAmount,
   demoActiveWall,
   isDemonstrationPlaying = false,
+  zoomInTrigger,
+  zoomOutTrigger,
+  resetTrigger,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [hoveredWindow, setHoveredWindow] = useState<{ window: WindowOpening; screenX: number; screenY: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const isPointerActiveRef = useRef(false);
 
   // Scene references
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -60,11 +67,44 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
     }
   };
 
+  // Dynamically compute camera distance to guarantee full building is framed on mobile screens
+  const getIdealDistance = (aspect: number): number => {
+    if (aspect >= 1.4) return 14;
+    if (aspect >= 1.1) return 15.5;
+    return Math.min(23, 14 * (1.35 / Math.max(0.55, aspect)));
+  };
+
   // Sync camera angle when activeWallKey or demoActiveWall changes
   useEffect(() => {
     const wall = demoActiveWall || activeWallKey;
     targetCamAngleRef.current = getWallAngle(wall);
   }, [activeWallKey, demoActiveWall]);
+
+  // External Zoom In Trigger
+  useEffect(() => {
+    if (zoomInTrigger && zoomInTrigger > 0) {
+      targetCamDistanceRef.current = Math.max(7, targetCamDistanceRef.current - 2);
+    }
+  }, [zoomInTrigger]);
+
+  // External Zoom Out Trigger
+  useEffect(() => {
+    if (zoomOutTrigger && zoomOutTrigger > 0) {
+      targetCamDistanceRef.current = Math.min(26, targetCamDistanceRef.current + 2);
+    }
+  }, [zoomOutTrigger]);
+
+  // External Reset Trigger
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0) {
+      const container = mountRef.current;
+      const aspect = container ? container.clientWidth / Math.max(container.clientHeight, 1) : 1;
+      const idealDist = getIdealDistance(aspect);
+      targetCamDistanceRef.current = idealDist;
+      targetCamHeightRef.current = 0;
+      targetCamAngleRef.current = getWallAngle(activeWallKey);
+    }
+  }, [resetTrigger, activeWallKey]);
 
   // Main Scene Setup
   useEffect(() => {
@@ -74,6 +114,10 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
     // Dimensions
     const width = container.clientWidth || 800;
     const height = container.clientHeight || 550;
+    const aspect = width / height;
+    const initialDistance = getIdealDistance(aspect);
+    targetCamDistanceRef.current = initialDistance;
+    currentCamDistanceRef.current = initialDistance;
 
     // Scene
     const scene = new THREE.Scene();
@@ -82,8 +126,8 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
     sceneRef.current = scene;
 
     // Camera
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, 14);
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 100);
+    camera.position.set(0, 0, initialDistance);
     cameraRef.current = camera;
 
     // Renderer
@@ -147,9 +191,15 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
       for (const entry of entries) {
         const { width: w, height: h } = entry.contentRect;
         if (w > 0 && h > 0 && cameraRef.current && rendererRef.current) {
-          cameraRef.current.aspect = w / h;
+          const aspect = w / h;
+          cameraRef.current.aspect = aspect;
           cameraRef.current.updateProjectionMatrix();
           rendererRef.current.setSize(w, h);
+
+          const idealDist = getIdealDistance(aspect);
+          if (targetCamDistanceRef.current < idealDist) {
+            targetCamDistanceRef.current = idealDist;
+          }
         }
       }
     });
@@ -608,18 +658,24 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
   // Pointer Interaction & Raycasting (Click to select, Hover for tooltip)
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsDragging(false);
+    isPointerActiveRef.current = true;
     (mountRef.current as any).pointerStartX = e.clientX;
     (mountRef.current as any).pointerStartY = e.clientY;
     (mountRef.current as any).startAngle = targetCamAngleRef.current;
     (mountRef.current as any).startHeight = targetCamHeightRef.current;
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore if not supported
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const container = mountRef.current;
     if (!container || !cameraRef.current || !sceneRef.current) return;
 
-    // Check if dragging orbit
-    if (e.buttons === 1 && (mountRef.current as any).pointerStartX !== undefined) {
+    // Check if dragging orbit (mouse or touch)
+    if (isPointerActiveRef.current && (mountRef.current as any).pointerStartX !== undefined) {
       const dx = e.clientX - (mountRef.current as any).pointerStartX;
       const dy = e.clientY - (mountRef.current as any).pointerStartY;
 
@@ -631,7 +687,7 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
       return;
     }
 
-    // Raycast for hover tooltip
+    // Raycast for hover tooltip (on desktop mouse hover)
     const rect = container.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -658,6 +714,13 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     const container = mountRef.current;
+    isPointerActiveRef.current = false;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+      // Ignore if not supported
+    }
+
     if (!container || !cameraRef.current || !sceneRef.current) return;
 
     if (!isDragging) {
@@ -686,29 +749,26 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
   // Zoom control via wheel
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
-    targetCamDistanceRef.current = Math.max(7, Math.min(22, targetCamDistanceRef.current + e.deltaY * 0.01));
+    targetCamDistanceRef.current = Math.max(7, Math.min(26, targetCamDistanceRef.current + e.deltaY * 0.01));
   };
 
-  // Calculate dominant window style on the active wall for HUD
-  const activeWallWindows = wallsData[activeWallKey]?.detectedWindows || [];
-  const dominantType = activeWallWindows.length > 0 ? activeWallWindows[0].currentType : "Casement";
-
   return (
-    <div className="relative w-full h-full min-h-[500px] bg-slate-900/5 rounded-2xl overflow-hidden border border-slate-200 shadow-inner flex flex-col">
+    <div className="relative w-full h-[360px] sm:h-[460px] md:h-[520px] bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-inner flex flex-col">
       {/* 3D Canvas Mount */}
       <div
         ref={mountRef}
         className="w-full flex-1 relative outline-none select-none cursor-grab active:cursor-grabbing"
+        style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onWheel={handleWheel}
       />
 
-      {/* Floating Hover Tooltip */}
+      {/* Floating Hover Tooltip (Only visible when pointing/hovering a window) */}
       {hoveredWindow && !isDemonstrationPlaying && (
         <div
-          className="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full -mt-3 bg-slate-900/95 text-white text-xs px-3.5 py-2.5 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/80 space-y-1"
+          className="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full -mt-3 bg-slate-900/95 text-white text-xs px-3.5 py-2.5 rounded-xl shadow-2xl backdrop-blur-md border border-slate-700/80 space-y-1 animate-in fade-in"
           style={{ left: `${hoveredWindow.screenX}px`, top: `${hoveredWindow.screenY}px` }}
         >
           <div className="font-bold text-cyan-300 flex items-center justify-between gap-3">
@@ -724,38 +784,10 @@ export const ThreeBuildingViewer: React.FC<ThreeBuildingViewerProps> = ({
             {hoveredWindow.window.pixelWidth} &times; {hoveredWindow.window.pixelHeight} px ({hoveredWindow.window.sizeCategory})
           </div>
           <div className="text-[9px] text-emerald-400 font-bold uppercase tracking-tight pt-0.5 border-t border-slate-800">
-            Click to customize this window
+            Tap to customize this window
           </div>
         </div>
       )}
-
-      {/* Top Floating Overlay Badges & Window Style Indicator */}
-      <div className="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-2">
-        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/95 backdrop-blur-md text-slate-800 shadow-md border border-slate-200 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>{wallsData[activeWallKey]?.label}</span>
-        </span>
-
-        {/* Live Window Style Indicator Pill */}
-        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-200 flex items-center gap-1.5 uppercase tracking-tight">
-          <span>Style: {dominantType}</span>
-          <span className="text-[10px] opacity-80 font-normal">
-            ({dominantType === "Casement" ? "Hinged" : dominantType === "Sliding" ? "Gliding Tracks" : "Awning Tilt"})
-          </span>
-        </span>
-
-        <span className="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/90 backdrop-blur-md text-slate-700 shadow-xs border border-slate-200">
-          Paint: {selectedPaintColor.name}
-        </span>
-        <span className="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/90 backdrop-blur-md text-slate-700 shadow-xs border border-slate-200">
-          Frame: {selectedFrameColor.name}
-        </span>
-      </div>
-
-      {/* Quick 3D Interaction Hint */}
-      <div className="absolute bottom-4 right-4 z-10 text-[11px] font-medium text-slate-600 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-200 shadow-xs pointer-events-none">
-        Drag to 360° Orbit &bull; Scroll to Zoom &bull; Click Window to Edit
-      </div>
     </div>
   );
 };
