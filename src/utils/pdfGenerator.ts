@@ -145,7 +145,7 @@ export async function generateFabricationPDFReport(project: BuildingProject): Pr
   doc.setTextColor(67, 56, 202);
   doc.text("Precision CNC cutting, heavy-gauge thermal broken frames, double glazing & warranty.", margin + 6, currentY + 13);
   doc.text("Contact our workshop for official quotation & on-site laser measurements.", margin + 6, currentY + 18);
-  doc.text("Phone: +1 (800) 555-ALUM • Email: fabricate@architectural-aluminum.com", margin + 6, currentY + 23);
+  doc.text("Phone: +2348160565623 • Email: omas7th@gmail.com", margin + 6, currentY + 23);
 
   // Save the PDF
   doc.save(`${project.title.toLowerCase().replace(/\s+/g, "-")}-window-schedule.pdf`);

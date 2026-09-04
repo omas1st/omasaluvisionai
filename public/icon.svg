@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="50%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="glassReflection" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1e1b4b" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- Outer Architectural Window Frame (Shadowed) -->
+  <g filter="url(#dropShadow)">
+    <rect x="86" y="86" width="340" height="340" rx="28" fill="url(#metalGrad)" stroke="#64748b" stroke-width="4"/>
+    <rect x="96" y="96" width="320" height="320" rx="20" fill="#1e293b"/>
+  </g>
+
+  <!-- 4-Pane Casement Window Geometry -->
+  <!-- Pane Top-Left -->
+  <rect x="108" y="108" width="142" height="142" rx="10" fill="url(#glassGrad)"/>
+  <polygon points="108,108 220,108 108,220" fill="url(#glassReflection)"/>
+
+  <!-- Pane Top-Right -->
+  <rect x="262" y="108" width="142" height="142" rx="10" fill="url(#glassGrad)"/>
+  <polygon points="262,108 380,108 262,226" fill="url(#glassReflection)"/>
+
+  <!-- Pane Bottom-Left -->
+  <rect x="108" y="262" width="142" height="142" rx="10" fill="url(#glassGrad)"/>
+  <polygon points="108,262 200,262 108,354" fill="url(#glassReflection)"/>
+
+  <!-- Pane Bottom-Right -->
+  <rect x="262" y="262" width="142" height="142" rx="10" fill="url(#glassGrad)"/>
+  <polygon points="262,262 360,262 262,360" fill="url(#glassReflection)"/>
+
+  <!-- Heavy Aluminum Mullion Center Cross -->
+  <rect x="250" y="96" width="12" height="320" fill="url(#metalGrad)"/>
+  <rect x="96" y="250" width="320" height="12" fill="url(#metalGrad)"/>
+
+  <!-- Center Hardware Joint -->
+  <circle cx="256" cy="256" r="10" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+  <circle cx="256" cy="256" r="4" fill="#4f46e5"/>
+
+  <!-- Casement Aluminum Handles -->
+  <rect x="238" y="160" width="6" height="36" rx="3" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+  <rect x="268" y="160" width="6" height="36" rx="3" fill="#f8fafc" stroke="#64748b" stroke-width="1"/>
+</svg>

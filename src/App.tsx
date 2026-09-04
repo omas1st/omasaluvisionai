@@ -23,6 +23,8 @@ import { FrameSelector } from "./components/FrameSelector";
 import { DemonstrationPlayer } from "./components/DemonstrationPlayer";
 import { SaveShareModal } from "./components/SaveShareModal";
 import { WindowScheduleTable } from "./components/WindowScheduleTable";
+import { PWAInstallButton } from "./components/PWAInstallButton";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 import {
   Building2,
   Table,
@@ -396,6 +398,9 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* PWA In-App Install Trigger */}
+          <PWAInstallButton />
+
           {phase === "viewer" && (
             <>
               {/* Back to Upload / Homepage Button */}
@@ -685,6 +690,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* PWA Offline Mode Toast Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }
