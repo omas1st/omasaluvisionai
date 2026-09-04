@@ -49,15 +49,26 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
   const lastTimeRef = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on click outside
+  // Close menu on click outside or escape
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   // Compute total duration based on play mode
@@ -426,12 +437,12 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
 
             {/* Dropdown Menu Popover with All View Options */}
             {isMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-2.5rem)] bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-[calc(100vw-3rem)] max-w-xs sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-2">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Select Demonstration Target
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-600 mt-0.5 leading-normal">
                     Choose to play all building views or a single elevation.
                   </p>
                 </div>
@@ -446,7 +457,7 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
                         key={opt.id}
                         id={`btn-select-play-${opt.id}`}
                         onClick={() => handleStartPlay(opt.id)}
-                        className={`w-full text-left p-2.5 rounded-lg flex items-start gap-3 transition-colors cursor-pointer ${
+                        className={`w-full text-left p-2.5 rounded-lg flex items-start gap-2.5 transition-colors cursor-pointer ${
                           isSelected
                             ? "bg-emerald-50 border border-emerald-200 text-slate-900"
                             : "hover:bg-slate-50 text-slate-700"
@@ -463,12 +474,12 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-bold uppercase tracking-tight">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-xs font-bold uppercase tracking-tight truncate">
                               {opt.label}
                             </span>
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 ${
                                 isSelected
                                   ? "bg-emerald-200 text-emerald-800"
                                   : "bg-slate-100 text-slate-500"
@@ -477,7 +488,7 @@ export const DemonstrationPlayer: React.FC<DemonstrationPlayerProps> = ({
                               {opt.badge}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1 leading-snug">
+                          <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-snug">
                             {opt.description}
                           </p>
                         </div>
